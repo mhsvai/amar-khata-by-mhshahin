@@ -42,6 +42,8 @@
             -webkit-tap-highlight-color: transparent;
             user-select: none;
             overflow-x: hidden;
+            /* অফলাইন থাকাকালীন ড্র্যাগ করে রিফ্রেশ বন্ধ করতে */
+            overscroll-behavior-y: contain;
         }
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
@@ -82,9 +84,18 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
+                const swUrl = new URL('sw.js', window.location.href).href;
+                navigator.serviceWorker.register(swUrl)
                     .then(reg => {
-                        console.log('ServiceWorker Registered');
+                        console.log('ServiceWorker Registered with scope:', reg.scope);
+                        reg.onupdatefound = () => {
+                          const installingWorker = reg.installing;
+                          installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                              window.location.reload();
+                            }
+                          };
+                        };
                     })
                     .catch(err => {
                         console.error('SW Registration failed:', err);
