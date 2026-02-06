@@ -1121,7 +1121,7 @@ function DevProfileModal({ t, onClose, theme }: any) {
         <div className={`w-36 h-36 rounded-full mb-6 p-2 border-[4px] ${accentBorder} shadow-lg relative`}>
           <div className="w-full h-full rounded-full bg-pink-100 dark:bg-pink-900/30 overflow-hidden flex items-center justify-center">
             <img 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=M%20H%20Shahin" 
+              src="https://i.postimg.cc/W13RYW8V/20251108-090556.jpg" 
               alt="Developer" 
               className="w-full h-full object-cover scale-110" 
             />
