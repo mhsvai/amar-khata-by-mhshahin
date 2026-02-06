@@ -3,7 +3,7 @@
   "name": "আমার খাতা - ব্যক্তিগত হিসাব",
   "short_name": "আমার খাতা",
   "description": "সম্পূর্ণ অফলাইন ব্যক্তিগত আয়-ব্যয় ট্র্যাকার ও ডায়েরি",
-  "start_url": "./index.html",
+  "start_url": "https://mhsvai.github.io/amar-khata-by-mhshahin/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
