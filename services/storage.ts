@@ -1,5 +1,5 @@
 
-import { StorageData } from '../types';
+import { StorageData, Transaction, Loan, MonthlyNote, Category } from '../types';
 
 const STORAGE_KEY = 'amar_khata_data';
 
@@ -52,7 +52,7 @@ export const storage = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `AK-backup-BY-SHAHIN-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `amar-khata-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   },
@@ -63,12 +63,48 @@ export const storage = {
       reader.onload = (e) => {
         try {
           const content = e.target?.result as string;
-          const parsed = JSON.parse(content);
-          if (parsed.khata && parsed.settings) {
-            localStorage.setItem(STORAGE_KEY, content);
+          const imported = JSON.parse(content);
+          
+          if (imported.khata && imported.settings) {
+            const current = storage.getData();
+            
+            // --- Smart Merging Logic ---
+            
+            // 1. Transactions: Merge by ID uniqueness
+            const existingTxIds = new Set(current.khata.transactions.map(t => t.id));
+            const newTransactions = imported.khata.transactions.filter((t: Transaction) => !existingTxIds.has(t.id));
+            const mergedTransactions = [...current.khata.transactions, ...newTransactions];
+
+            // 2. Loans: Merge by ID uniqueness
+            const existingLoanIds = new Set(current.khata.loans.map(l => l.id));
+            const newLoans = imported.khata.loans.filter((l: Loan) => !existingLoanIds.has(l.id));
+            const mergedLoans = [...current.khata.loans, ...newLoans];
+
+            // 3. Categories: Merge by Label + Type uniqueness
+            const existingCatKeys = new Set(current.khata.categories.map(c => `${c.label}_${c.type}`));
+            const newCategories = imported.khata.categories.filter((c: Category) => !existingCatKeys.has(`${c.label}_${c.type}`));
+            const mergedCategories = [...current.khata.categories, ...newCategories];
+
+            // 4. Notes: Merge by Month uniqueness
+            const existingMonths = new Set(current.khata.notes.map(n => n.month));
+            const newNotes = imported.khata.notes.filter((n: MonthlyNote) => !existingMonths.has(n.month));
+            const mergedNotes = [...current.khata.notes, ...newNotes];
+
+            const mergedData: StorageData = {
+              settings: current.settings, 
+              khata: {
+                ...current.khata,
+                transactions: mergedTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+                loans: mergedLoans.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+                categories: mergedCategories,
+                notes: mergedNotes
+              }
+            };
+
+            storage.saveData(mergedData);
             resolve();
           } else {
-            reject(new Error('Invalid backup file'));
+            reject(new Error('Invalid backup file format'));
           }
         } catch (err) {
           reject(err);
