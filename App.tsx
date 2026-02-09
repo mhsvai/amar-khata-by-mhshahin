@@ -44,7 +44,8 @@ import {
   History as HistoryIcon,
   RefreshCcw,
   HelpCircle,
-  BookOpen
+  BookOpen,
+  CheckCircle as SuccessIcon
 } from 'lucide-react';
 import { storage } from './services/storage';
 import { Transaction, Loan, StorageData, TransactionType, LoanType, ThemeColor, Category, MonthlyNote, LoanStatus, LoanPayment } from './types';
@@ -64,7 +65,6 @@ import {
 
 type ActiveTab = 'dashboard' | 'history' | 'summary' | 'reports' | 'notes' | 'settings';
 
-// Helper to get local date string in YYYY-MM-DD
 const getLocalDateStr = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -73,7 +73,6 @@ const getLocalDateStr = () => {
   return `${year}-${month}-${day}`;
 };
 
-// Helper to get local month string in YYYY-MM
 const getLocalMonthStr = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -95,6 +94,7 @@ export default function App() {
   const [showDevModal, setShowDevModal] = useState(false);
   const [showUsageModal, setShowUsageModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const lang = data.settings.language || 'bn';
   const t = (key: string) => translations[lang][key] || key;
@@ -118,6 +118,11 @@ export default function App() {
     }
     root.style.setProperty('--theme-color', activeColorHex);
   }, [data, isDarkMode, activeColorHex]);
+
+  const triggerToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const updateSettings = (updates: Partial<StorageData['settings']>) => {
     setIsLoading(true);
@@ -275,6 +280,17 @@ export default function App() {
         </div>
       )}
 
+      {toast && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[200] animate-in slide-in-from-top duration-300 px-4 w-full max-w-xs">
+          <div className={`flex items-center gap-3 p-4 rounded-2xl shadow-2xl backdrop-blur-xl border ${toast.type === 'success' ? 'bg-emerald-50/90 dark:bg-emerald-900/40 border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50/90 dark:bg-rose-900/40 border-rose-100 dark:border-rose-800 text-rose-600 dark:text-rose-400'}`}>
+            <div className={`shrink-0 p-1.5 rounded-full ${toast.type === 'success' ? 'bg-emerald-100 dark:bg-emerald-800' : 'bg-rose-100 dark:bg-rose-800'}`}>
+              {toast.type === 'success' ? <SuccessIcon size={16} /> : <AlertCircle size={16} />}
+            </div>
+            <p className="text-sm font-black tracking-tight">{toast.message}</p>
+          </div>
+        </div>
+      )}
+
       <header className="px-6 py-5 flex justify-between items-center bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-40 backdrop-blur-lg bg-opacity-80 dark:bg-opacity-80">
         <div onClick={() => setActiveTab('dashboard')} className="cursor-pointer">
           <p className={`text-[10px] font-bold uppercase tracking-widest ${THEME_MAP[currentTheme].split(' ')[2]}`}>{t('diaryTitle')}</p>
@@ -293,7 +309,17 @@ export default function App() {
         {activeTab === 'notes' && <NotesView t={t} notes={data.khata.notes} setNotes={(n:any) => setData(p => ({...p, khata: {...p.khata, notes: n}}))} theme={currentTheme} />}
         {activeTab === 'settings' && (
           <SettingsView 
-            t={t} lang={lang} settings={data.settings} onUpdateSettings={updateSettings} onExport={storage.exportToJSON} onImport={async (e:any) => { if (e.target.files[0]) { await storage.importFromJSON(e.target.files[0]); setData(storage.getData()); } }} theme={currentTheme} onShowDevProfile={() => setShowDevModal(true)} onManageCategories={() => setShowCategoryManager(true)} onShowUsageGuide={() => setShowUsageModal(true)}
+            t={t} lang={lang} settings={data.settings} onUpdateSettings={updateSettings} onExport={storage.exportToJSON} onImport={async (e:any) => { 
+              if (e.target.files[0]) { 
+                try {
+                  await storage.importFromJSON(e.target.files[0]); 
+                  setData(storage.getData()); 
+                  triggerToast(t('restoreSuccess'));
+                } catch (err) {
+                  triggerToast(t('restoreError'), 'error');
+                }
+              } 
+            }} theme={currentTheme} onShowDevProfile={() => setShowDevModal(true)} onManageCategories={() => setShowCategoryManager(true)} onShowUsageGuide={() => setShowUsageModal(true)}
           />
         )}
       </main>

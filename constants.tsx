@@ -1,3 +1,4 @@
+
 import { ThemeColor } from './types';
 
 export const PRESET_COLORS: Record<string, string> = {
@@ -103,7 +104,9 @@ export const translations: any = {
     deleteCat: 'ক্যাটাগরি ডিলেট',
     selectCatError: 'দয়া করে একটি ক্যাটাগরি সিলেক্ট করুন',
     settledFilter: 'পরিশোধিত',
-    paidStamp: 'পরিশোধিত'
+    paidStamp: 'পরিশোধিত',
+    restoreSuccess: 'ডাটা সফলভাবে রিস্টোর হয়েছে!',
+    restoreError: 'ভুল ফাইল ফরম্যাট!'
   },
   en: {
     appTitle: 'Amar Khata',
@@ -178,6 +181,8 @@ export const translations: any = {
     deleteCat: 'Delete Category',
     selectCatError: 'Please select a category',
     settledFilter: 'Settled',
-    paidStamp: 'PAID'
+    paidStamp: 'PAID',
+    restoreSuccess: 'Data restored successfully!',
+    restoreError: 'Invalid file format!'
   }
 };

@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="আমার খাতা">
     <meta name="application-name" content="আমার খাতা">
     
-    <!-- App PNG Icons (Place logo.png in your project folder) -->
+    <!-- App PNG Icons -->
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     
@@ -42,7 +42,6 @@
             -webkit-tap-highlight-color: transparent;
             user-select: none;
             overflow-x: hidden;
-            /* অফলাইন থাকাকালীন ড্র্যাগ করে রিফ্রেশ বন্ধ করতে */
             overscroll-behavior-y: contain;
         }
         .hide-scrollbar::-webkit-scrollbar {
@@ -82,19 +81,26 @@
     <div id="root"></div>
     <script type="module" src="index.tsx"></script>
     <script>
+        // Service Worker registration logic with improved offline check
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swUrl = new URL('sw.js', window.location.href).href;
-                navigator.serviceWorker.register(swUrl)
+                // Using relative path './sw.js' to avoid origin/scope issues
+                navigator.serviceWorker.register('./sw.js')
                     .then(reg => {
-                        console.log('ServiceWorker Registered with scope:', reg.scope);
+                        console.log('SW Registered:', reg.scope);
+                        
+                        // Look for updates to the SW
                         reg.onupdatefound = () => {
                           const installingWorker = reg.installing;
-                          installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                              window.location.reload();
-                            }
-                          };
+                          if (installingWorker) {
+                            installingWorker.onstatechange = () => {
+                              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New version available, notify user or auto-reload
+                                console.log('New content is available; please refresh.');
+                                window.location.reload();
+                              }
+                            };
+                          }
                         };
                     })
                     .catch(err => {
